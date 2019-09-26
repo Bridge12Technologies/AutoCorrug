@@ -1,3 +1,9 @@
+#   Author: Jagadishwar R. Sirigiri
+#   Bridge12 Technologies, Inc.
+#   37 Loring Drive, Framingham, MA 01702
+#   Date Created: September 25, 2019
+#   Classes defining different types of geometry for CORRUG
+
 import math
 import numpy as np
 
@@ -23,11 +29,11 @@ class SmoothSection():
         s = self.length/2
         for i in range(0,int(self.numsegments)):
             if (self.shape == 'Linear'):
-                rad = self.sd/2 +(i-1)*(self.ed/2-self.sd/2)/self.numsegments
+                rad = self.sd/2 + i*(self.ed/2-self.sd/2)/self.numsegments
             elif (self.shape == 'Sine Squared'):
-                rad = self.sd/2 + (self.ed/2-self.sd/2)*math.sin((i-1)*0.5*math.pi/self.numsegments)
+                rad = self.sd/2 + (self.ed/2-self.sd/2)*math.sin(i*0.5*math.pi/self.numsegments)
             elif (self.shape == 'Raised Cosine'):
-                rad = self.sd/2 + (self.ed/2-self.sd/2)*0.5*(1+((i-1)*(self.length/self.numsegments)-mu)/s+ (1/math.pi)*math.sin((((i-1)*self.length/self.numsegments)-mu)*math.pi/s))
+                rad = self.sd/2 + (self.ed/2-self.sd/2)*0.5*(1+(i*(self.length/self.numsegments)-mu)/s+ (1/math.pi)*math.sin(((i*self.length/self.numsegments)-mu)*math.pi/s))
             self.r.append(str(rad))
             self.rn.append(str(rad) + ' ' + str(self.nummodes))
         return
@@ -63,11 +69,11 @@ class CorrugatedSection():
         s = self.length/2
         for i in range(0,int(self.numsegments)):
             if (self.shape == 'Linear'):
-                rad = self.sd/2 +(i-1)*(self.ed/2-self.sd/2)/self.numsegments
+                rad = self.sd/2 + i*(self.ed/2-self.sd/2)/self.numsegments
             elif (self.shape == 'Sine Squared'):
-                rad = self.sd/2 + (self.ed/2-self.sd/2)*math.sin((i-1)*0.5*math.pi/self.numsegments)
+                rad = self.sd/2 + (self.ed/2-self.sd/2)*math.sin(i*0.5*math.pi/self.numsegments)
             elif (self.shape == 'Raised Cosine'):
-                rad = self.sd/2 + (self.ed/2-self.sd/2)*0.5*(1+((i-1)*(self.length/self.numsegments)-mu)/s+ (1/math.pi)*math.sin((((i-1)*self.length/self.numsegments)-mu)*math.pi/s))
+                rad = self.sd/2 + (self.ed/2-self.sd/2)*0.5*(1+(i*(self.length/self.numsegments)-mu)/s+ (1/math.pi)*math.sin(((i*self.length/self.numsegments)-mu)*math.pi/s))
             self.r.append(str(rad + self.scd +i*(self.ecd-self.scd)/self.numsegments))
             self.rn.append(str(rad + self.scd +i*(self.ecd-self.scd)/self.numsegments)+' '+str(self.nummodes))
             self.r.append(str(rad))
