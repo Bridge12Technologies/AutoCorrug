@@ -248,12 +248,9 @@ def create_plot_files_2V_2A_P2Sing_2Datafile(run_directory, sim_directory, dataf
 
     return
 
-def create_plot_files_2V_2A_P2Range_2Datafile(run_directory, datafile1, plot_variable1,
-                                              plot_variable1_units, datafile2, plot_variable2, plot_variable2_units,
-                                              parameter1, parameter1_units, parameter1_range, legend1, parameter2,
-                                              parameter2_units, parameter2_range, legend2, plotxrange ='[:]',
-                                              plotyrange = '[:]', ploty2range = '[:]', plot_title = ' ',
-                                              labels='False'):
+def create_plot_files_2V_2A_P2Range_2Datafile(run_directory,datafile1,plot_variable1,plot_variable1_units,datafile2,plot_variable2,plot_variable2_units,
+                                              parameter1,parameter1_units,parameter1_range,legend1,parameter2,parameter2_units,parameter2_range,legend2,
+                                              plotxrange ='[:]',plotyrange='[:]',ploty2range='[:]',plot_title=' ',labels='False'):
     import string, os
 
     os.chdir(run_directory)
@@ -295,7 +292,7 @@ def create_plot_files_2V_2A_P2Range_2Datafile(run_directory, datafile1, plot_var
                            ' with labels center offset 0, 1 notitle')
 
         ls_start = ls_start + len(parameter2_range)
-        file.write(' , "' + datafile2 + '"  u 1:2 axes x1y2 with lp ls ' + str(ls_start) + " t  '" + legend1[0] + "'")
+        file.write(' , "' + datafile2 + '"  u 1:2 axes x1y2 with lp ls ' + str(ls_start) + " t  '" + legend2[0] + "'")
         if labels == 'True':
             file.write(' , "' + datafile2 + '"  u 1:2:' + str(3 + len(parameter2_range)) +
                        ' axes x1y2 with labels center offset 0, 1 notitle ')  # can also use 0, 1 boxed notittle
