@@ -50,7 +50,9 @@ def main():
                 step +=1
                 step_directory = local_run_directory + '/' + str(step)
                 os.mkdir(step_directory)
-                CorrugSimInput.create_corrug_input_file(var_register, step_directory)
+                geometry = CorrugSimInput.define_geometry(var_register, step_directory)
+                CorrugUtils.write_corrug_input_file(geometry,var_register,step_directory)
+                CorrugUtils.write_output_geometry(geometry,step_directory)
                 with open (step_directory + '/' + 'parameter.dict', 'w') as keyfile:
                     keyfile.write(json.dumps(var_register))
             var_register = var_range.copy() # restore the value of var_register after iteration
@@ -69,7 +71,9 @@ def main():
                     step += 1
                     step_directory = local_run_directory + '/' + str(step)
                     os.mkdir(step_directory)
-                    CorrugSimInput.create_corrug_input_file(var_register, step_directory)
+                    geometry = CorrugSimInput.define_geometry(var_register, step_directory)
+                    CorrugUtils.write_corrug_input_file(geometry,var_register,step_directory)
+                    CorrugUtils.write_output_geometry(geometry,step_directory)
                     with open(step_directory + '/' + 'parameter.dict', 'w') as keyfile:
                         keyfile.write(json.dumps(var_register))
                 var_register = var_range.copy()  # restore the value of var_register after iteration
@@ -93,7 +97,9 @@ def main():
                         step += 1
                         step_directory = local_run_directory + '/' + str(step)
                         os.mkdir(step_directory)
-                        CorrugSimInput.create_corrug_input_file(var_register, step_directory)
+                        geometry = CorrugSimInput.define_geometry(var_register, step_directory)
+                        CorrugUtils.write_corrug_input_file(geometry,var_register,step_directory)
+                        CorrugUtils.write_output_geometry(geometry,step_directory)
                         with open(step_directory + '/' + 'parameter.dict', 'w') as keyfile:
                             keyfile.write(json.dumps(var_register))
             var_register = var_range.copy()  # restore the value of var_register after iteration

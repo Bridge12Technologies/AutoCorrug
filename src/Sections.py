@@ -23,17 +23,18 @@ class SmoothSection():
         
     def points(self):
         # calculates the end points
-        self.z = [float(self.length/self.numsegments)]*self.numsegments
+        dz = (self.length/self.numsegments)
+        self.z = [float(dz)]*(self.numsegments)
         self.n = np.full((self.numsegments,1),self.nummodes)
         mu = self.length/2
         s = self.length/2
         for i in range(0,int(self.numsegments)):
             if (self.shape == 'Linear'):
-                rad = self.sd/2 + i*(self.ed/2-self.sd/2)/self.numsegments
+                rad = self.sd/2 + i*(self.ed/2-self.sd/2)/(self.numsegments-1)
             elif (self.shape == 'Sine Squared'):
-                rad = self.sd/2 + (self.ed/2-self.sd/2)*math.sin(i*0.5*math.pi/self.numsegments)
+                rad = self.sd/2 + (self.ed/2-self.sd/2)*math.sin(i*0.5*math.pi/(self.numsegments-1))
             elif (self.shape == 'Raised Cosine'):
-                rad = self.sd/2 + (self.ed/2-self.sd/2)*0.5*(1+(i*(self.length/self.numsegments)-mu)/s+ (1/math.pi)*math.sin(((i*self.length/self.numsegments)-mu)*math.pi/s))
+                rad = self.sd/2 + (self.ed/2-self.sd/2)*0.5*(1+(i*(self.length/(self.numsegments-1))-mu)/s+ (1/math.pi)*math.sin(((i*self.length/(self.numsegments-1))-mu)*math.pi/s))
             self.r.append(str(rad))
             self.rn.append(str(rad) + ' ' + str(self.nummodes))
         return
@@ -59,7 +60,7 @@ class CorrugatedSection():
         
     def points(self):
         self.numsegments = int(self.length/(self.csw + self.ctw))
-        self.length = self.numsegments*0.5*(self.csw+self.ctw)
+        self.length = self.numsegments*(self.csw+self.ctw)
         self.n = np.full((self.numsegments,1),self.nummodes)
         for i in range(0,self.numsegments):
             self.z.append(self.csw)
@@ -69,11 +70,11 @@ class CorrugatedSection():
         s = self.length/2
         for i in range(0,int(self.numsegments)):
             if (self.shape == 'Linear'):
-                rad = self.sd/2 + i*(self.ed/2-self.sd/2)/self.numsegments
+                rad = self.sd/2 + i*(self.ed/2-self.sd/2)/(self.numsegments-1)
             elif (self.shape == 'Sine Squared'):
-                rad = self.sd/2 + (self.ed/2-self.sd/2)*math.sin(i*0.5*math.pi/self.numsegments)
+                rad = self.sd/2 + (self.ed/2-self.sd/2)*math.sin(i*0.5*math.pi/(self.numsegments-1))
             elif (self.shape == 'Raised Cosine'):
-                rad = self.sd/2 + (self.ed/2-self.sd/2)*0.5*(1+(i*(self.length/self.numsegments)-mu)/s+ (1/math.pi)*math.sin(((i*self.length/self.numsegments)-mu)*math.pi/s))
+                rad = self.sd/2 + (self.ed/2-self.sd/2)*0.5*(1+(i*(self.length/(self.numsegments-1))-mu)/s+ (1/math.pi)*math.sin(((i*self.length/(self.numsegments-1))-mu)*math.pi/s))
             self.r.append(str(rad + self.scd +i*(self.ecd-self.scd)/self.numsegments))
             self.rn.append(str(rad + self.scd +i*(self.ecd-self.scd)/self.numsegments)+' '+str(self.nummodes))
             self.r.append(str(rad))

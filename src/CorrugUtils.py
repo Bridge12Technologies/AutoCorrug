@@ -15,6 +15,84 @@ import os,string,shutil,csv
 #   Date Created: September 25, 2019
 #   Utilities for automating CORRUG runs
 
+from numpy import savetxt
+
+def write_corrug_input_file(geometry,var_register,step_directory):
+
+    NumSegments = 0
+    for section in geometry:
+        section.points()
+        NumSegments = NumSegments + section.numsegments
+
+    with open(step_directory+'\\'+'input.i', 'w') as inputfile:
+        inputfile.write(str(var_register['Frequency'][0]) + ' ' + str(1)+ ' '+ str(NumSegments))
+        inputfile.write('\n')
+
+        for section in geometry:
+            savetxt(inputfile,section.z)
+        
+        for section in geometry:
+            savetxt(inputfile,(section.rn), fmt="%s")
+
+        # specify input mode mixture
+        if (var_register['Input Modes'][0] == 'TE11'):
+            inputfile.write(str(1))
+            inputfile.write('\n')
+            inputfile.write(str(1) + '  ' + str(0))
+            inputfile.write('\n')
+        elif (var_register['Input Modes'][0] == 'HE11'):
+            inputfile.write(str(4))
+            inputfile.write('\n')
+            inputfile.write(str(0.91978) + '  ' + str(0)) #TE11
+            inputfile.write('\n')
+            inputfile.write(str(0.38079) + '  ' + str(180)) #TM11
+            inputfile.write('\n')
+            inputfile.write(str(0.031623) + '  ' + str(0)) #TE12
+            inputfile.write('\n')
+            inputfile.write(str(0.07746) + '  ' + str(180)) #TM12
+            inputfile.write('\n')
+
+    # write a list file with runtime input for corrug.exe
+    with open(step_directory+'\\'+'commands.in', 'w') as inputfile:
+        inputfile.write('input.i')
+        inputfile.write('\n')  
+        inputfile.write('output.o')
+        inputfile.write('\n')  
+        inputfile.write('pattern.pat')
+        inputfile.write('\n')  
+        inputfile.write(str(var_register['NTheta'][0]))
+        inputfile.write('\n')  
+        inputfile.write(str(var_register['DTheta'][0]))
+        inputfile.write('\n')  
+        inputfile.write('Y')
+        inputfile.close()
+    return
+
+
+def write_output_geometry(geometry,step_directory):
+    with open(step_directory+'\\'+'geometry.out', 'w') as geometryfile:
+        zold = 0
+        seccount = 1
+        for section in geometry:    
+            if seccount == 1:
+                j = 0
+                for k in section.z:
+                    geometryfile.write(str(zold)+','+str(section.r[j])+'\n')
+                    zold = k + zold
+                    j = j + 1
+                seccount = seccount + 1
+                geometryfile.write(str(zold)+','+str(section.r[j-1])+'\n')
+            else:
+                j = 0
+                for k in section.z:
+                    geometryfile.write(str(zold)+','+str(section.r[j])+'\n')
+                    geometryfile.write(str(k+zold)+','+str(section.r[j])+'\n')
+                    zold = k + zold
+                    j = j + 1
+                seccount = seccount + 1
+    return
+
+
 def run_corrug(run_directory, var_register, results_path):
     import socket,os,shutil
     from distutils.dir_util import copy_tree
@@ -87,7 +165,6 @@ def execute_parameter_sweeps(jobs_dir, var_register, nodes, run_directory):
     cluster.close()
 
     return
-
 
 def remove_duplicate_parameter_simulation_directories(run_directory):
  # compares the parameter.dict to see if the parameters in the simulation directory are duplicate to a
