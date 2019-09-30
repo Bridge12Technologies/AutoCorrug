@@ -104,11 +104,214 @@ def tabulate_parameter_variations (run_directory):
     
     return listdic
 
+def postprocess_2parameters_1variable(run_directory,listdic,var_range,var_list,plot_variable1,plot_variable1_units, 
+                                        parameter1,parameter1_units,parameter1_range,parameter2,parameter2_units,parameter2_range, 
+                               plotxrange='[]',plotyrange='[]',labels='False'):
+    import os, json
+    import numpy as np
+    import PlotUtils
 
-def PPP_3V_1A(run_directory,listdic,var_range,var_list,plot_variable1,plot_variable1_units,parameter1,
-                      parameter1_units,parameter1_range,parameter2,parameter2_units,parameter2_range,
-                      parameter3,parameter3_units,parameter3_range,
-                      plotxrange ='[]', plotyrange = '[]', labels = 'False',subplot_columns = 3):
+    os.chdir(run_directory)
+    
+    legend1 = [None]*(len(parameter2_range))
+
+    datafile_prefix = parameter2 + '-' + parameter1
+    datafile1 = datafile_prefix + plot_variable1 + '.dat'
+    datafile1.replace(" ", "-")
+
+    data_array0 = np.zeros((len(parameter1_range),1+len(parameter2_range)+len(parameter2_range)))
+    
+    # add additional column as the first column in parameter1
+    # add additional len(range2) to include the folder # corresponding to the simulation results
+    for i in range(0, len(parameter1_range)):
+        data_array0[i, 0] = parameter1_range[i]
+
+    for j in range(0,len(parameter2_range)):
+        legend1[j] = (parameter2 + ' ' + ' = ' + str(parameter2_range[j]))
+        
+    sim_directories = next(os.walk('.'))[1]  # to just get directories and not files
+    var_nominal_list = json.load(open(run_directory + '\\NominalParameters.dict'))
+          
+    for i in range (0,len(parameter1_range)):
+        for j in range (0,len(parameter2_range)):
+            match_found = 0
+            print('Searching for ', parameter1, ' = ', parameter1_range[i], 'and ', parameter2, ' = ', parameter2_range[j])
+            var_nominal_list_copy = var_nominal_list.copy()
+            if parameter2 == 'Modes': parameter2_range[j] = list(parameter2_range[j])
+            var_nominal_list_copy[parameter1][0] = parameter1_range[i]
+            var_nominal_list_copy[parameter2][0] = parameter2_range[j]
+            count = 0
+            for sim_directory in sim_directories:
+                if dict_compare(var_nominal_list_copy, listdic[count]) == 1:
+                    print('Match found in simulation directory #', sim_directory)
+                    match_found = 1
+                    #filename = listdic[count]['version_num'][0] + '.pwbal.out'
+                    filename = run_directory + '\\' + sim_directory + '\\' + 'output.o'
+                    #datafiles[k] = datafile_prefix + '-' + str(k) + '-power.dat'
+                    run_fail,TE11_amp,TE11_phase,HE11_amp,HE11_phase,HE12_amp,HE12_phase,Return_Loss = read_output_file(filename)
+
+                    if plot_variable1 == 'TE11 Power':
+                        data_array0[i, j + 1] = TE11_amp**2
+                        data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                    elif plot_variable1 == 'TE11 Phase':
+                        data_array0[i, j + 1] = TE11_phase
+                        data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                    elif plot_variable1 == 'HE11 Power':
+                        data_array0[i, j + 1] = HE11_amp**2
+                        data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                    elif plot_variable1 == 'HE11 Phase':
+                        data_array0[i, j + 1] = HE11_phase
+                        data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                    elif plot_variable1 == 'HE12 POwer':
+                        data_array0[i, j + 1] = HE12_amp**2
+                        data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                    elif plot_variable1 == 'HE12 Phase':                        
+                        data_array0[i, j + 1] = HE12_phase
+                        data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                    elif plot_variable1 == 'Return_Loss':
+                        data_array0[i, j + 1] = Return_Loss
+                        data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+
+                count = count+1
+            if match_found == 0:
+                    print('Match failed')  
+                    data_array0[i, j + 1] = 0.0
+                    data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+     
+
+    np.savetxt(datafile1,data_array0,delimiter=',', fmt=' '.join(['%1.4f,']*(len(parameter2_range)+1)
+                                                               + ['%i,']*len(parameter2_range)))
+
+    PlotUtils.create_gnuplot_file_2parameters_1variable(run_directory,datafile1,plot_variable1,plot_variable1_units,
+                                        parameter1,parameter1_units,parameter1_range,legend1,parameter2,parameter2_units,parameter2_range,
+                                      plotxrange=plotxrange,plotyrange=plotyrange,labels=labels)
+
+    return
+
+def postprocess_2parameters_2variables(run_directory,listdic,var_range,var_list,plot_variable1,plot_variable1_units,plot_variable2,
+                               plot_variable2_units,parameter1,parameter1_units,parameter1_range,parameter2,
+                               parameter2_units,parameter2_range, 
+                               plotxrange='[]',plotyrange='[]',ploty2range='[]',labels='False',parameter1_parameter2_map_labels='False'):
+    import os, json
+    import numpy as np
+    import PlotUtils
+
+    os.chdir(run_directory)
+    
+    
+    legend1 = [None]*(len(parameter2_range))
+    legend2 = [None]*(len(parameter2_range))
+
+    datafile_prefix = parameter2 + '-' + parameter1
+    datafile1 = datafile_prefix + plot_variable1 + '.dat'
+    datafile1.replace(" ", "-")
+    datafile2 = datafile_prefix + plot_variable2 + '.dat'
+    datafile2.replace(" ", "-")
+
+
+    data_array0 = np.zeros((len(parameter1_range),1+len(parameter2_range)+len(parameter2_range)))
+    data_array1 = np.zeros((len(parameter1_range),1+len(parameter2_range)+len(parameter2_range)))
+    
+    # add additional column as the first column in parameter1
+    # add additional len(range2) to include the folder # corresponding to the simulation results
+    for i in range(0, len(parameter1_range)):
+        data_array0[i, 0] = parameter1_range[i]
+        data_array1[i, 0] = parameter1_range[i]
+
+    for j in range(0,len(parameter2_range)):
+        legend1[j] = (plot_variable1 + ' for '+parameter2 + ' ' + ' = ' + str(parameter2_range[j]))
+        legend2[j] = (plot_variable2 + ' for '+parameter2 + ' ' + ' = ' + str(parameter2_range[j]))
+        
+    sim_directories = next(os.walk('.'))[1]  # to just get directories and not files
+    var_nominal_list = json.load(open(run_directory + '\\NominalParameters.dict'))
+          
+    for i in range (0,len(parameter1_range)):
+           for j in range (0,len(parameter2_range)):
+            match_found = 0
+            print('Searching for ', parameter1, ' = ', parameter1_range[i], 'and ', parameter2, ' = ', parameter2_range[j])
+            var_nominal_list_copy = var_nominal_list.copy()
+            if parameter2 == 'Modes': parameter2_range[j] = list(parameter2_range[j])
+            var_nominal_list_copy[parameter1][0] = parameter1_range[i]
+            var_nominal_list_copy[parameter2][0] = parameter2_range[j]
+            count = 0
+            for sim_directory in sim_directories:
+                if dict_compare(var_nominal_list_copy, listdic[count]) == 1:
+                    print('Match found in simulation directory #', sim_directory)
+                    match_found = 1
+                    #filename = listdic[count]['version_num'][0] + '.pwbal.out'
+                    filename = run_directory + '\\' + sim_directory + '\\' + 'output.o'
+                    #datafiles[k] = datafile_prefix + '-' + str(k) + '-power.dat'
+                    run_fail,TE11_amp,TE11_phase,HE11_amp,HE11_phase,HE12_amp,HE12_phase,Return_Loss = read_output_file(filename)
+
+                    if plot_variable1 == 'TE11 Power':
+                        data_array0[i, j + 1] = TE11_amp**2
+                        data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                    elif plot_variable1 == 'TE11 Phase':
+                        data_array0[i, j + 1] = TE11_phase
+                        data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                    elif plot_variable1 == 'HE11 Power':
+                        data_array0[i, j + 1] = HE11_amp**2
+                        data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                    elif plot_variable1 == 'HE11 Phase':
+                        data_array0[i, j + 1] = HE11_phase
+                        data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                    elif plot_variable1 == 'HE12 POwer':
+                        data_array0[i, j + 1] = HE12_amp**2
+                        data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                    elif plot_variable1 == 'HE12 Phase':                        
+                        data_array0[i, j + 1] = HE12_phase
+                        data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                    elif plot_variable1 == 'Return_Loss':
+                        data_array0[i, j + 1] = Return_Loss
+                        data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+
+                    if plot_variable2 == 'TE11 Power':
+                        data_array1[i, j + 1] = TE11_amp**2
+                        data_array1[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                    elif plot_variable2 == 'TE11 Phase':
+                        data_array1[i, j + 1] = TE11_phase
+                        data_array1[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                    elif plot_variable2 == 'HE11 Power':
+                        data_array1[i, j + 1] = HE11_amp**2
+                        data_array1[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                    elif plot_variable2 == 'HE11 Phase':
+                        data_array1[i, j + 1] = HE11_phase
+                        data_array1[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                    elif plot_variable2 == 'HE12 Power':
+                        data_array1[i, j + 1] = HE12_amp**2
+                        data_array1[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                    elif plot_variable2 == 'HE12 Phase':                        
+                        data_array1[i, j + 1] = HE12_phase
+                        data_array1[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                    elif plot_variable2 == 'Return_Loss':
+                        data_array1[i, j + 1] = Return_Loss
+                        data_array1[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                count = count+1
+            if match_found == 0:
+                    print('Match failed')  
+                    data_array0[i, j + 1] = 0.0
+                    data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                    data_array1[i, j + 1] = 0.0
+                    data_array1[i, j + 1 + len(parameter2_range)] = int(sim_directory)        
+
+    np.savetxt(datafile1,data_array0,delimiter=',', fmt=' '.join(['%1.4f,']*(len(parameter2_range)+1)
+                                                               + ['%i,']*len(parameter2_range)))
+    np.savetxt(datafile2,data_array1,delimiter=',', fmt=' '.join(['%1.4f,']*(len(parameter2_range)+1)
+                                                               + ['%i,']*len(parameter2_range)))
+
+    PlotUtils.create_gnuplot_file_2parameters_2variables(run_directory,datafile1,plot_variable1,plot_variable1_units,datafile2,
+                                      plot_variable2,plot_variable2_units,parameter1,parameter1_units,
+                                      parameter1_range,legend1,parameter2,parameter2_units,parameter2_range,legend2,
+                                      plotxrange=plotxrange,plotyrange=plotyrange,ploty2range=ploty2range,labels=labels)
+
+    return
+
+
+def postprocess_3parameters_1variable(run_directory,listdic,var_range,var_list,plot_variable1,plot_variable1_units,
+                                    parameter1,parameter1_units,parameter1_range,
+                                    parameter2,parameter2_units,parameter2_range,
+                                    parameter3,parameter3_units,parameter3_range,
+                                    plotxrange ='[]', plotyrange = '[]', labels = 'False',subplot_columns = 3):
     import os, json
     import numpy as np
     import PlotUtils
@@ -186,236 +389,141 @@ def PPP_3V_1A(run_directory,listdic,var_range,var_list,plot_variable1,plot_varia
         else:
             print('Simulations for this parameter are not yet complete')
 
-    PlotUtils.create_subplot_files(run_directory, datafiles, plot_variable1, plot_variable1_units, parameter1,
-                                      parameter1_units, parameter1_range, parameter2, parameter2_units,
-                                      parameter2_range, parameter3, parameter3_units, parameter3_range,legend,
-                                      subplot_title, plot_title = '', subplot_columns = subplot_columns,
-                                      plotxrange = plotxrange, plotyrange = plotyrange,
-                                      labels = labels)
+    PlotUtils.create_gnuplot_file_3parameters_1variable(run_directory,datafiles,plot_variable1,plot_variable1_units,legend,
+                                                        parameter1,parameter1_units,parameter1_range,
+                                                        parameter2,parameter2_units,parameter2_range,
+                                                        parameter3,parameter3_units,parameter3_range,
+                                                        subplot_title,plot_title='',subplot_columns=subplot_columns,
+                                                        plotxrange=plotxrange,plotyrange=plotyrange,labels=labels)
     return
 
 
-def PPP_1V_1A_P2Sing(runstamp, var_range, var_list, plot_variable1, plot_variable1_units, parameter1,
-                               parameter1_units, parameter1_range, plotxrange ='[]',plotyrange = '[]',
-                               labels = 'False'):
-    import os, json
-    import numpy as np
-    import PlotUtils
-    os.chdir(runstamp)
-    run_directory = os.getcwd()
-
-    data_array = np.zeros((len(parameter1_range),3))  # first Col-1 is primary variable, Col-2 is value, Col-3 is sim directory
-    # add additional column as the first column in parameter1
-    # add additional one column at the end to include the folder # corresponding to the simulation results
-    for i in range(0, len(parameter1_range)):
-        data_array[i, 0] = parameter1_range[i]
-
-    for i in range (0,len(parameter1_range)):
-        for sim_directory in next(os.walk('.'))[1]: # to just get directories and not files
-            var_list = json.load(open(sim_directory + '\\parameter.dict'))
-            if var_list[parameter1][0] == parameter1_range[i]:
-                if plot_variable1 == 'Power':
-                    filename = var_list['version_num'][0] + '.pwbal.out'
-                    datafile ='Power-' + parameter1 + '-t1.dat'
-                    ohm_loss, out_power, spent_beam_power, run_fail  = \
-                        read_pwbal_file(run_directory + '\\' + sim_directory + '\\' +
-                                                  filename, int(var_list['num_avg_z_points'][0]))
-                    data_array[i, 1] = out_power
-                    data_array[i, 2] = sim_directory
-
-                elif plot_variable1 == "Frequency":
-                    filename = 'freq_converge.log'
-                    datafile = 'Frequency-' + parameter1 + '-t1.dat'
-                    frequency_GHz = get_frequency(run_directory + '\\' + sim_directory + '\\' + filename)
-                    data_array[i, 1] = frequency_GHz
-                    data_array[i, 2] = sim_directory
-
-    np.savetxt(datafile,data_array,delimiter=',',fmt=' '.join(['%1.4f,']*2 + ['%i,']))
-
-    PlotUtils.create_type1_plot_files(run_directory, datafile, plot_variable1, plot_variable1_units,
-                                      parameter1, parameter1_units, plotxrange = plotxrange, plotyrange = plotyrange,
-                                      labels = labels)
-    return
-
-def PPP_1V_1A_P2Range(runstamp, var_range, var_list, plot_variable1, plot_variable1_units, parameter1,
-                      parameter1_units, parameter1_range, parameter2, parameter2_units, parameter2_range,
-                      plotxrange ='[]', plotyrange = '[]', labels = 'False'):
-    import os, json
-    import numpy as np
-    import PlotUtils
-
-    os.chdir(runstamp)
-    run_directory = os.getcwd()
-
-    data_array = np.zeros((len(parameter1_range), len(parameter2_range)+ 1 + len(parameter2_range)))
-    # add additional column as the first column in parameter1
-    # add additional len(range2) to include the folder # corresponding to the simulation results
-    for i in range(0, len(parameter1_range)):
-        data_array[i, 0] = parameter1_range[i]
-
-    legend = [None]*(len(parameter2_range))
-
-    for i in range (0,len(parameter1_range)):
-        for j in range (0,len(parameter2_range)):
-            match_found = 0
-            legend[j] = (parameter2 + ' = ' + str(parameter2_range[j]))
-            print('Searching for ', parameter1, ' = ', parameter1_range[i], 'and ', parameter2, ' = ', parameter2_range[j])
-            for sim_directory in next(os.walk('.'))[1]: # to just get directories and not files
-                var_list = json.load(open(sim_directory + '\\parameter.dict'))
-
-                if parameter2 == 'Modes': parameter2_range[j] = list(parameter2_range[j])
-
-                if var_list[parameter1][0] == parameter1_range[i] and var_list[parameter2][0] == parameter2_range[j]:
-                    print('Match found in simulation directory #', sim_directory)
-                    match_found = 1
-                    if plot_variable1 == 'Power':
-                        filename = var_list['version_num'][0] + '.pwbal.out'
-                        datafile = 'power-t2.dat'
-                        ohm_loss, out_power, spent_beam_power, run_fail  = \
-                            read_pwbal_file(run_directory + '\\' + sim_directory + '\\' +
-                                                      filename, int(var_list['num_avg_z_points'][0]))
-                        data_array[i, j + 1] = out_power
-                        data_array[i, j + 1 + len(parameter2_range)] = int(sim_directory)
-                        break
-
-                    elif plot_variable1 == 'Frequency':
-                        filename = 'freq_converge.log'
-                        datafile = 'frequency-t2.dat'
-                        frequency_GHz = get_frequency(run_directory + '\\' + sim_directory + '\\' + filename)
-                        data_array[i, j + 1] = frequency_GHz
-                        data_array[i, j + 1 + len(parameter2_range)] = int(sim_directory)
-                        break
-            
-            if match_found == 0:
-                print('Match failed')  
-                data_array[i, j + 1] = np.nan
-                data_array[i, j + 1 + len(parameter2_range)] = np.nan  
-
-    np.savetxt(datafile,data_array,delimiter=',', fmt=' '.join(['%1.4f,']*(len(parameter2_range)+1)
-                                                               + ['%i,']*len(parameter2_range)))
-
-    PlotUtils.create_type2_plot_files(run_directory, datafile, plot_variable1, plot_variable1_units, parameter1,
-                                      parameter1_units, parameter1_range, parameter2, parameter2_units, parameter2_range, legend,
-                                      plotxrange = plotxrange, plotyrange = plotyrange, labels = labels)
-    return
-
-
-def PPP_2V_2A_P2Range(run_directory,listdic,var_range,var_list,plot_variable1,plot_variable1_units,plot_variable2,
-                               plot_variable2_units,parameter1,parameter1_units,parameter1_range,parameter2,
-                               parameter2_units,parameter2_range, 
-                               plotxrange='[]',plotyrange='[]',ploty2range='[]',labels='False',parameter1_parameter2_map_labels='False'):
+def postprocess_3parameters_2variables(run_directory,listdic,var_range,var_list,plot_variable1,plot_variable1_units,plot_variable2,plot_variable2_units,
+                                        parameter1,parameter1_units,parameter1_range,
+                                        parameter2,parameter2_units,parameter2_range,
+                                        parameter3,parameter3_units,parameter3_range,
+                                        plotxrange ='[]', plotyrange = '[]', labels = 'False',subplot_columns = 3):
     import os, json
     import numpy as np
     import PlotUtils
 
     os.chdir(run_directory)
-    
-    
+
     legend1 = [None]*(len(parameter2_range))
     legend2 = [None]*(len(parameter2_range))
+    
+    for j in range(0, len(parameter2_range)):
+        legend1[j] = (parameter2 + ' = ' + str(parameter2_range[j]))
+        legend2[j] = (parameter2 + ' = ' + str(parameter2_range[j]))
 
-    datafile_prefix = parameter2 + '-' + parameter1
-    datafile1 = datafile_prefix + plot_variable1 + '.dat'
-    datafile1.replace(" ", "-")
-    datafile2 = datafile_prefix + plot_variable2 + '.dat'
-    datafile2.replace(" ", "-")
+    subplot_title = [None]*(len(parameter1_range))
+    for k in range(0, len(parameter1_range)):
+        subplot_title[k] = (parameter1 + ' = ' + str(parameter1_range[k]))
+
+    datafiles1 = [None]*(len(parameter3_range))
+    datafiles2 = [None]*(len(parameter3_range))
+
+    datafiles_prefix = parameter3 + '-' + parameter2 + '-' + parameter1
+    datafiles_prefix.replace(" ", "-")
 
 
     data_array0 = np.zeros((len(parameter1_range),1+len(parameter2_range)+len(parameter2_range)))
     data_array1 = np.zeros((len(parameter1_range),1+len(parameter2_range)+len(parameter2_range)))
-    
-    # add additional column as the first column in parameter1
-    # add additional len(range2) to include the folder # corresponding to the simulation results
-    for i in range(0, len(parameter1_range)):
-        data_array0[i, 0] = parameter1_range[i]
-        data_array1[i, 0] = parameter1_range[i]
 
-    for j in range(0,len(parameter2_range)):
-        legend1[j] = (plot_variable1 + ' for '+parameter2 + ' ' + ' = ' + str(parameter2_range[j]))
-        legend2[j] = (plot_variable2 + ' for '+parameter2 + ' ' + ' = ' + str(parameter2_range[j]))
-        
-    sim_directories = next(os.walk('.'))[1]  # to just get directories and not files
     var_nominal_list = json.load(open(run_directory + '\\NominalParameters.dict'))
-          
-    for i in range (0,len(parameter1_range)):
-        tempstr = ''
-        for j in range (0,len(parameter2_range)):
-            match_found = 0
-            print('Searching for ', parameter1, ' = ', parameter1_range[i], 'and ', parameter2, ' = ', parameter2_range[j])
-            var_nominal_list_copy = var_nominal_list.copy()
-            if parameter2 == 'Modes': parameter2_range[j] = list(parameter2_range[j])
-            var_nominal_list_copy[parameter1][0] = parameter1_range[i]
-            var_nominal_list_copy[parameter2][0] = parameter2_range[j]
-            count = 0
-            for sim_directory in sim_directories:
-                if dict_compare(var_nominal_list_copy, listdic[count]) == 1:
-                    print('Match found in simulation directory #', sim_directory)
-                    match_found = 1
-                    #filename = listdic[count]['version_num'][0] + '.pwbal.out'
-                    filename = run_directory + '\\' + sim_directory + '\\' + 'output.o'
-                    #datafiles[k] = datafile_prefix + '-' + str(k) + '-power.dat'
-                    run_fail,TE11_amp,TE11_phase,HE11_amp,HE11_phase,HE12_amp,HE12_phase,Return_Loss = read_output_file(filename)
+    kcount = 0
+    for k in range(0,len(parameter3_range)):
+        datafiles1[kcount] = datafiles_prefix + '-' + plot_variable1 + '-'+ str(kcount) + '.dat'
+        datafiles2[kcount] = datafiles_prefix + '-' + plot_variable2 + '-'+ str(kcount) + '.dat'
 
-                    if plot_variable1 == 'TE11 Power':
-                        data_array0[i, j + 1] = TE11_amp**2
-                        data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
-                    elif plot_variable1 == 'TE11 Phase':
-                        data_array0[i, j + 1] = TE11_phase
-                        data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
-                    elif plot_variable1 == 'HE11 Power':
-                        data_array0[i, j + 1] = HE11_amp**2
-                        data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
-                    elif plot_variable1 == 'HE11 Phase':
-                        data_array0[i, j + 1] = HE11_phase
-                        data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
-                    elif plot_variable1 == 'HE12 POwer':
-                        data_array0[i, j + 1] = HE12_amp**2
-                        data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
-                    elif plot_variable1 == 'HE12 Phase':                        
-                        data_array0[i, j + 1] = HE12_phase
-                        data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
-                    elif plot_variable1 == 'Return_Loss':
-                        data_array0[i, j + 1] = Return_Loss
-                        data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+        data_array0 = np.zeros((len(parameter1_range), len(parameter2_range)+ 1 + len(parameter2_range)))
+        data_array1 = np.zeros((len(parameter1_range), len(parameter2_range)+ 1 + len(parameter2_range)))
+        # add additional column as the first column in parameter1
+        # add additional len(range2) to include the folder # corresponding to the simulation results
+        for i in range(0, len(parameter1_range)):
+            data_array0[i, 0] = parameter1_range[i]
+            data_array1[i, 0] = parameter1_range[i]
 
-                    if plot_variable2 == 'TE11 Power':
-                        data_array1[i, j + 1] = TE11_amp**2
-                        data_array1[i, j + 1 + len(parameter2_range)] = int(sim_directory)
-                    elif plot_variable2 == 'TE11 Phase':
-                        data_array1[i, j + 1] = TE11_phase
-                        data_array1[i, j + 1 + len(parameter2_range)] = int(sim_directory)
-                    elif plot_variable2 == 'HE11 Power':
-                        data_array1[i, j + 1] = HE11_amp**2
-                        data_array1[i, j + 1 + len(parameter2_range)] = int(sim_directory)
-                    elif plot_variable2 == 'HE11 Phase':
-                        data_array1[i, j + 1] = HE11_phase
-                        data_array1[i, j + 1 + len(parameter2_range)] = int(sim_directory)
-                    elif plot_variable2 == 'HE12 Power':
-                        data_array1[i, j + 1] = HE12_amp**2
-                        data_array1[i, j + 1 + len(parameter2_range)] = int(sim_directory)
-                    elif plot_variable2 == 'HE12 Phase':                        
-                        data_array1[i, j + 1] = HE12_phase
-                        data_array1[i, j + 1 + len(parameter2_range)] = int(sim_directory)
-                    elif plot_variable2 == 'Return_Loss':
-                        data_array1[i, j + 1] = Return_Loss
-                        data_array1[i, j + 1 + len(parameter2_range)] = int(sim_directory)
-                count = count+1
+        sim_directories = next(os.walk('.'))[1]  # to just get directories and not files
+
+        for i in range (0,len(parameter1_range)):
+            for j in range (0,len(parameter2_range)):
+                match_found = 0
+                print('Searching for ', parameter1, ' = ', parameter1_range[i], ', ', parameter2, ' = ', parameter2_range[j], 'and ', parameter3, ' = ', parameter3_range[k])
+                var_nominal_list_copy = var_nominal_list.copy()
+                if parameter2 == 'Modes': parameter2_range[j] = list(parameter2_range[j])
+                var_nominal_list_copy[parameter1][0] = parameter1_range[i]
+                var_nominal_list_copy[parameter2][0] = parameter2_range[j]
+                var_nominal_list_copy[parameter3][0] = parameter3_range[k]
+                count = 0
+                for sim_directory in sim_directories:
+                    if dict_compare(var_nominal_list_copy, listdic[count]) == 1:
+                        print('Match found in simulation directory #', sim_directory)
+                        match_found = 1
+                        filename = run_directory + '\\' + sim_directory + '\\' + 'output.o'
+                        run_fail,TE11_amp,TE11_phase,HE11_amp,HE11_phase,HE12_amp,HE12_phase,Return_Loss = read_output_file(filename)
+
+                        if plot_variable1 == 'TE11 Power':
+                            data_array0[i, j + 1] = TE11_amp**2
+                            data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                        elif plot_variable1 == 'TE11 Phase':
+                            data_array0[i, j + 1] = TE11_phase
+                            data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                        elif plot_variable1 == 'HE11 Power':
+                            data_array0[i, j + 1] = HE11_amp**2
+                            data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                        elif plot_variable1 == 'HE11 Phase':
+                            data_array0[i, j + 1] = HE11_phase
+                            data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                        elif plot_variable1 == 'HE12 POwer':
+                            data_array0[i, j + 1] = HE12_amp**2
+                            data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                        elif plot_variable1 == 'HE12 Phase':                        
+                            data_array0[i, j + 1] = HE12_phase
+                            data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                        elif plot_variable1 == 'Return_Loss':
+                            data_array0[i, j + 1] = Return_Loss
+                            data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+
+                        if plot_variable2 == 'TE11 Power':
+                            data_array1[i, j + 1] = TE11_amp**2
+                            data_array1[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                        elif plot_variable2 == 'TE11 Phase':
+                            data_array1[i, j + 1] = TE11_phase
+                            data_array1[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                        elif plot_variable2 == 'HE11 Power':
+                            data_array1[i, j + 1] = HE11_amp**2
+                            data_array1[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                        elif plot_variable2 == 'HE11 Phase':
+                            data_array1[i, j + 1] = HE11_phase
+                            data_array1[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                        elif plot_variable2 == 'HE12 Power':
+                            data_array1[i, j + 1] = HE12_amp**2
+                            data_array1[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                        elif plot_variable2 == 'HE12 Phase':                        
+                            data_array1[i, j + 1] = HE12_phase
+                            data_array1[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                        elif plot_variable2 == 'Return_Loss':
+                            data_array1[i, j + 1] = Return_Loss
+                            data_array1[i, j + 1 + len(parameter2_range)] = int(sim_directory)
+                    count = count+1
             if match_found == 0:
                     print('Match failed')  
                     data_array0[i, j + 1] = 0.0
                     data_array0[i, j + 1 + len(parameter2_range)] = int(sim_directory)
                     data_array1[i, j + 1] = 0.0
-                    data_array1[i, j + 1 + len(parameter2_range)] = int(sim_directory)        
+                    data_array1[i, j + 1 + len(parameter2_range)] = int(sim_directory)
 
-    np.savetxt(datafile1,data_array0,delimiter=',', fmt=' '.join(['%1.4f,']*(len(parameter2_range)+1)
-                                                               + ['%i,']*len(parameter2_range)))
-    np.savetxt(datafile2,data_array1,delimiter=',', fmt=' '.join(['%1.4f,']*(len(parameter2_range)+1)
-                                                               + ['%i,']*len(parameter2_range)))
+        np.savetxt(datafiles1[k],data_array0,delimiter=',', fmt=' '.join(['%1.4f,']*(len(parameter2_range)+1) + ['%i,']*len(parameter2_range)))
+        np.savetxt(datafiles2[k],data_array1,delimiter=',', fmt=' '.join(['%1.4f,']*(len(parameter2_range)+1) + ['%i,']*len(parameter2_range)))
+        kcount = kcount +1
 
-    PlotUtils.create_plot_files_2V_2A_P2Range_2Datafile(run_directory,datafile1,plot_variable1,plot_variable1_units,datafile2,
-                                      plot_variable2,plot_variable2_units,parameter1,parameter1_units,
-                                      parameter1_range,legend1,parameter2,parameter2_units,parameter2_range,legend2,
-                                      plotxrange=plotxrange,plotyrange=plotyrange,ploty2range=ploty2range,labels=labels)
 
+    PlotUtils.create_gnuplot_file_3parameters_2variables(run_directory,datafiles1,plot_variable1,plot_variable1_units,legend1,datafiles2,plot_variable2,plot_variable2_units,legend2,
+                                                        parameter1,parameter1_units,parameter1_range,
+                                                        parameter2,parameter2_units,parameter2_range,
+                                                        parameter3,parameter3_units,parameter3_range,
+                                                        subplot_title,plot_title= '',subplot_columns=subplot_columns,
+                                                        plotxrange=plotxrange,plotyrange=plotyrange,labels = labels)
     return
 
