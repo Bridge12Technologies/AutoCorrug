@@ -1,20 +1,10 @@
 #   Author: Jagadishwar R. Sirigiri
-#   Bridge12 Technologies Inc.
-#   37 Loring Drive, Framingham, MA
-#   Date Created: 2 September 2017
-#   Last Modified: 2 September 2017
-#   Executes the program
-
-#   Ver 1.0 20170902 - 
-
-import os,string,shutil,csv
-
-#   Author: Jagadishwar R. Sirigiri
 #   Bridge12 Technologies, Inc.
 #   37 Loring Drive, Framingham, MA 01702
 #   Date Created: September 25, 2019
 #   Utilities for automating CORRUG runs
 
+import os,string,shutil,csv
 from numpy import savetxt
 
 def write_corrug_input_file(geometry,var_register,step_directory):
