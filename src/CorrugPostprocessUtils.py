@@ -328,7 +328,7 @@ def postprocess_3parameters_1variable(run_directory,listdic,var_range,var_list,p
 
     datafiles = [None]*(len(parameter3_range))
 
-    datafile_prefix = parameter3 + '-' + parameter2 + '-' + parameter1
+    datafile_prefix = parameter3 + '-' + parameter2 + '-' + parameter1 +  '-' + plot_variable1 
     datafile_prefix.replace(" ", "-")
 
     var_nominal_list = json.load(open(run_directory + '\\NominalParameters.dict'))
@@ -358,7 +358,7 @@ def postprocess_3parameters_1variable(run_directory,listdic,var_range,var_list,p
                         print('Match found in simulation directory #', sim_directory)
                         match_found = 1
                         filename = run_directory + '\\' + sim_directory + '\\' + 'output.o'
-                        datafiles[k] = datafile_prefix + '-' + str(k) + '-power.dat'
+                        datafiles[k] = datafile_prefix + '-' + str(k) + '.dat'
                         run_fail,TE11_amp,TE11_phase,HE11_amp,HE11_phase,HE12_amp,HE12_phase,Return_Loss = read_output_file(filename)
 
                         if plot_variable1 == 'TE11 Power':
@@ -423,7 +423,7 @@ def postprocess_3parameters_2variables(run_directory,listdic,var_range,var_list,
     datafiles1 = [None]*(len(parameter3_range))
     datafiles2 = [None]*(len(parameter3_range))
 
-    datafiles_prefix = parameter3 + '-' + parameter2 + '-' + parameter1
+    datafiles_prefix = parameter3 + '-' + parameter2 + '-' + parameter1 
     datafiles_prefix.replace(" ", "-")
 
 
