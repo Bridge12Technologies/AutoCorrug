@@ -32,27 +32,24 @@ def main(args):
         with open (results_dir + '/' + 'parameters.sort', 'r') as infile:
             listdic = json.load(infile)
 
-    TE11HE11ProfileList = ['Linear', 'Sine Squared', 'Raised Cosine']
+    TE11HE11ProfileList =['Linear', 'Sine Squared', 'Raised Cosine']
+    CWGUptaperProfileList =['Linear', 'Sine Squared', 'Raised Cosine']
     TE11HE11ConverterLengthList = [20,25,30,35]
     CWGStraightSectionLength = [50,60,70,80]
-    FrequencyList = [90,92,93,94,96,98,100]                      
+    FrequencyList = [90,92,94,95,96,98,100]                      
                                                                                                      
-    CorrugPostprocessUtils.PPP_3V_1A(results_dir, listdic, var_range, var_list, 'HE11 Power', 'Fraction', 'Frequency', 'GHz', FrequencyList,  
-                                    'TE11-HE11 Conv Profile', ' ', TE11HE11ProfileList, 'CWG Straight Section Length', 'mm', CWGStraightSectionLength,  
+    CorrugPostprocessUtils.postprocess_3parameters_1variable(results_dir, listdic, var_range, var_list, 'HE11 Power', 'Fraction', 'Frequency', 'GHz', FrequencyList,  
+                                    'TE11 HE11 Conv Profile', ' ', TE11HE11ProfileList, 'CWG Straight Section Length', 'mm', CWGStraightSectionLength,  
                                     plotxrange='[:]',plotyrange='[:]', labels = 'True', subplot_columns = 3)  
-
-    # MagyPostprocessUtils.PPP_3V_1A(results_dir, listdic, var_range, var_list, 'Power', 'W', 'voltage', 'kV', voltageList, 'Modes', ' ', ModeList,
-    #                            'current', 'A', currentList,
-    #                             plotxrange='[:]',plotyrange='[:]', labels = 'True', subplot_columns = 3)  
-
-    # MagyPostprocessUtils.PPP_2V_2A_P2Range(results_dir, listdic, var_range, var_list, 'Power','W', 'Frequency', 'GHz',
-    #                             'BMain', 'T', BList, 'Coolant Temperature', 'C', CoolantTemperatureList,
-    #                             plotxrange='[:]', plotyrange='[:]', ploty2range='[:]', labels = 'False', parameter1_parameter2_map_labels = 'True')                                
-
-    # MagyPostprocessUtils.PPP_2V_2A_P2Range(results_dir, listdic, var_range, var_list, 'Power','W', 'Frequency', 'GHz',
-    #                             'voltage', 'kV', voltageList, 'Coolant Temperature', 'C', CoolantTemperatureList,
-    #                             plotxrange='[:]', plotyrange='[:]', ploty2range='[:]', labels = 'False', parameter1_parameter2_map_labels = 'True')    
-   
+    
+    CorrugPostprocessUtils.postprocess_3parameters_1variable(results_dir, listdic, var_range, var_list, 'HE11 Power', 'Fraction', 'Frequency', 'GHz', FrequencyList,  
+                                    'CWG Uptaper Profile', ' ', CWGUptaperProfileList, 'CWG Straight Section Length', 'mm', CWGStraightSectionLength,  
+                                    plotxrange='[:]',plotyrange='[:]', labels = 'True', subplot_columns = 3)  
+    
+    CorrugPostprocessUtils.postprocess_3parameters_1variable(results_dir, listdic, var_range, var_list, 'HE11 Power', 'Fraction', 'Frequency', 'GHz', FrequencyList,  
+                                    'CWG Uptaper Profile', ' ', CWGUptaperProfileList, 'TE11 HE11 Conv Profile', '-', TE11HE11ProfileList,  
+                                    plotxrange='[:]',plotyrange='[:]', labels = 'True', subplot_columns = 3)
+    
     if warning_oldtab == True:
         print('WARNING - Used old sorted scanned parameters tables from disk. Tables may not be up to date. Run with PostProcessor with option  -r True')
 

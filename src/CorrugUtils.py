@@ -85,8 +85,7 @@ def write_output_geometry(geometry,step_directory):
 
 def run_corrug(run_directory, var_register, results_path):
     import socket,os,shutil
-    from distutils.dir_util import copy_tree
-
+    
     host = socket.gethostname()
 
     # make a local run directory to run simulations and then copy over the results to results folder
@@ -95,12 +94,12 @@ def run_corrug(run_directory, var_register, results_path):
     local_run_directory = run_directory.rsplit('/')[-1]
     local_run_directory = os.getcwd()+ '\\' + local_run_directory
     os.mkdir(local_run_directory)
-    copy_tree(run_directory, local_run_directory)
+    shutil.copytree(run_directory,local_run_directory,dirs_exist_ok=True)
     os.chdir(local_run_directory)
     os.system('%CORRUG% < commands.in')
 
     # copy completed results to the central run directory
-    copy_tree(local_run_directory + '\\..\\', run_directory + '\\..\\')
+    shutil.copytree(local_run_directory + '\\..\\', run_directory + '\\..\\',dirs_exist_ok=True)
     # delete the local run directories to reclaim disk space
     os.chdir('\\..')
     shutil.rmtree(local_run_directory, ignore_errors=True)
@@ -202,9 +201,9 @@ def remove_duplicate_parameter_simulation_directories(run_directory):
     return
 
 def flatten(l):
-    import collections
+    from collections.abc import Iterable
     for el in l:
-        if isinstance(el, collections.Iterable) and not isinstance(el, (str, bytes)):
+        if isinstance(el, Iterable) and not isinstance(el, (str, bytes)):
             yield from flatten(el)
         else:
             yield el
