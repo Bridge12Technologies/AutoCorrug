@@ -1,4 +1,36 @@
 
+def create_geometry_plotfile(run_directory,step_directory):
+    import string, os
+
+    # os.chdir(run_directory)
+    pltfile =step_directory+'\\plotGeometry.plt'
+    title = step_directory
+    titlefont = 'font "Helvetica,18"'
+    plotidentifierfont = 'font "Helvetica,9" noenhanced'
+
+    with open(pltfile,'w') as file:
+        file.write('set term windows \n')
+        file.write('load "..\\\\gnuplot-linestyles.plt" \n')
+        file.write('set label' + '"' + step_directory + '"' + 'left at screen 0.05, screen 0.9425'
+                   + plotidentifierfont + '\n')
+        file.write('set datafile missing "nan" \n')
+        file.write('set key noenhanced \n')
+        file.write('clear \n')
+        file.write('set auto \n')
+        file.write('unset mouse \n')
+        file.write('set auto \n')
+        file.write('set grid \n')
+        file.write('set title "' + title + '"' + titlefont + '\n')
+        file.write('set xlabel "Distance (mm)" \n')
+        file.write('set ylabel "Radius (mm)" \n')
+
+        file.write('plot "geometry.out" using 1:2 with l ls 1 lw 0.5')
+        file.write('\n')
+        file.write('pause -1 "hit any key to continue"')
+
+    return
+
+
 def create_gnuplot_file_2parameters_1variable(run_directory,datafile1,plot_variable1,plot_variable1_units,
                                               parameter1,parameter1_units,parameter1_range,legend1,parameter2,parameter2_units,parameter2_range,
                                               plotxrange ='[:]',plotyrange='[:]',plot_title=' ',labels='False'):
@@ -118,7 +150,7 @@ def create_gnuplot_file_3parameters_1variable(run_directory,datafiles1,plot_vari
     datafile_prefix.replace(" ", "-")
 
     pltfile = datafile_prefix + '.plt'
-    keyfont = 'font "Helvetica,12"'
+    keyfont = 'font "Helvetica,10"'
     titlefont = 'font "Helvetica,12" noenhanced'
     plotidentifierfont = 'font "Helvetica,9" noenhanced'
     labelfont = 'font "Helvetica,14" noenhanced'
@@ -133,7 +165,7 @@ def create_gnuplot_file_3parameters_1variable(run_directory,datafiles1,plot_vari
     MP_TOP = 0.9
     MP_GAP = 0.15
     xlabel_offset = 'offset 0,0'
-    ylabel_offset = 'offset 4,0'
+    ylabel_offset = 'offset 2,0'
     title_offset = 'offset 0,0.0'
 
     ls_start = 1

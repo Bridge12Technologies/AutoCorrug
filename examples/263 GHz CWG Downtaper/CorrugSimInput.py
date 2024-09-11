@@ -51,6 +51,12 @@ def simulation_parameters():
 def define_geometry(var_register,step_directory):
 
     geometry = []
+
+    # adding a small smooth section of 1 mm at the start of the simulation to avoid launching the mode at a discontinuity. 
+    # needs further investigation to determine if it is necessary. Using this at the moment to avoid an issue with the geometry.out file exclusively used for plotting
+    nummodes = int(var_register['Number of Modes at Input Crosssection'][0])
+    geometry.append(SmoothSection(name='InputSec',sd=var_register['InputCWGSection Dia'][0],ed=var_register['InputCWGSection Dia'][0], 
+    length=1,numsegments=5,nummodes=nummodes,shape='Linear',z=[],r=[],rn=[]))
        
     nummodes = int(var_register['Number of Modes at Input Crosssection'][0])
     geometry.append(CorrugatedSection(name='InputCWGSection',sd=var_register['InputCWGSection Dia'][0],ed=var_register['InputCWGSection Dia'][0],

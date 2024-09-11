@@ -12,7 +12,7 @@ import os, shutil
 import json
 from datetime import datetime
 
-import CorrugSimInput, CorrugUtils
+import CorrugSimInput, CorrugUtils, PlotUtils
 
 
 def main():
@@ -53,6 +53,7 @@ def main():
                 geometry = CorrugSimInput.define_geometry(var_register, step_directory)
                 CorrugUtils.write_corrug_input_file(geometry,var_register,step_directory)
                 CorrugUtils.write_output_geometry(geometry,step_directory)
+                PlotUtils.create_geometry_plotfile(un_directory,step_directory)
                 with open (step_directory + '/' + 'parameter.dict', 'w') as keyfile:
                     keyfile.write(json.dumps(var_register))
             var_register = var_range.copy() # restore the value of var_register after iteration
@@ -74,6 +75,7 @@ def main():
                     geometry = CorrugSimInput.define_geometry(var_register, step_directory)
                     CorrugUtils.write_corrug_input_file(geometry,var_register,step_directory)
                     CorrugUtils.write_output_geometry(geometry,step_directory)
+                    PlotUtils.create_geometry_plotfile(run_directory,step_directory)
                     with open(step_directory + '/' + 'parameter.dict', 'w') as keyfile:
                         keyfile.write(json.dumps(var_register))
                 var_register = var_range.copy()  # restore the value of var_register after iteration
@@ -100,6 +102,7 @@ def main():
                         geometry = CorrugSimInput.define_geometry(var_register, step_directory)
                         CorrugUtils.write_corrug_input_file(geometry,var_register,step_directory)
                         CorrugUtils.write_output_geometry(geometry,step_directory)
+                        PlotUtils.create_geometry_plotfile(run_directory,step_directory)
                         with open(step_directory + '/' + 'parameter.dict', 'w') as keyfile:
                             keyfile.write(json.dumps(var_register))
             var_register = var_range.copy()  # restore the value of var_register after iteration

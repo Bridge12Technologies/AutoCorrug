@@ -32,12 +32,12 @@ def main(args):
         with open (results_dir + '/' + 'parameters.sort', 'r') as infile:
             listdic = json.load(infile)
 
-    SmoothSecProfileList =['Linear', 'Sine Squared', 'Raised Cosine']
+    CWGDowntaperProfileList =['Linear', 'Sine Squared', 'Raised Cosine']
     OutputCWGSectionLength = [20,30,40]
     FrequencyList = [258, 259, 260, 261, 262, 263]                      
                                                                                                      
     CorrugPostprocessUtils.postprocess_3parameters_1variable(results_dir, listdic, var_range, var_list, 'HE11 Power', 'Fraction', 'Frequency', 'GHz', FrequencyList,  
-                                    'SmoothSec Profile', ' ', SmoothSecProfileList, 'OutputCWGSection Length', 'mm', OutputCWGSectionLength,  
+                                    'CWGDowntaper Profile', ' ', CWGDowntaperProfileList, 'OutputCWGSection Length', 'mm', OutputCWGSectionLength,  
                                     plotxrange='[:]',plotyrange='[:]', labels = 'True', subplot_columns = 3)  
     
     # CorrugPostprocessUtils.postprocess_3parameters_1variable(results_dir, listdic, var_range, var_list, 'HE11 Power', 'Fraction', 'Frequency', 'GHz', FrequencyList,  
