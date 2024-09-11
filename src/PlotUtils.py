@@ -138,7 +138,7 @@ def create_gnuplot_file_3parameters_1variable(run_directory,datafiles1,plot_vari
 
     ls_start = 1
     with open(pltfile,'w') as file:
-        # file.write('set term windows \n')  # - can't change the terminal in multiplot mode
+        file.write('set term windows \n')  # - can't change the terminal in multiplot mode
         if os.path.exists('gnuplot-multiplot-linestyles.plt'):
             file.write('load "gnuplot-multiplot-linestyles.plt" \n')
         file.write('set label' + '"' + run_directory + '"' + ' left at screen 0.05, screen 0.98'

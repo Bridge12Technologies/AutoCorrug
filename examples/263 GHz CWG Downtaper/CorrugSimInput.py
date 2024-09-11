@@ -64,8 +64,8 @@ def define_geometry(var_register,step_directory):
     csw=var_register['CWGDowntaper Corrug Slot Width'][0],ctw=var_register['CWGDowntaper Corrug Tooth Width'][0],  
     length=var_register['CWGDowntaper Length'][0],numsegments=1,nummodes=nummodes,shape=var_register['CWGDowntaper Profile'][0],z=[],r=[],rn=[]))
 
-    nummodes = int(var_register['Number of Modes at Input Crosssection'][0]*var_register['SmoothDowntaper End Dia'][0]/var_register['InputCWGSection Dia'][0])
-    geometry.append(CorrugatedSection(name='OutputCWGSection',sd=var_register['SmoothDowntaper End Dia'][0],ed=var_register['SmoothDowntaper End Dia'][0],
+    nummodes = int(var_register['Number of Modes at Input Crosssection'][0]*var_register['CWGDowntaper End Dia'][0]/var_register['InputCWGSection Dia'][0])
+    geometry.append(CorrugatedSection(name='OutputCWGSection',sd=var_register['CWGDowntaper End Dia'][0],ed=var_register['CWGDowntaper End Dia'][0],
     scd=var_register['OutputCWGSection Corrug Depth'][0],ecd=var_register['OutputCWGSection Corrug Depth'][0],
     csw=var_register['OutputCWGSection Corrug Slot Width'][0],ctw=var_register['OutputCWGSection Corrug Tooth Width'][0],  
     length=var_register['OutputCWGSection Length'][0],numsegments=1,nummodes=nummodes,shape=var_register['OutputCWGSection Profile'][0],z=[],r=[],rn=[]))
